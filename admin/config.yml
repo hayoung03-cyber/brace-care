@@ -2,7 +2,7 @@
 backend:
   name: github
   repo: hayoung03-cyber/brace-care
-  branch: main
+  branch: cms-integration
 
 site_url: https://preventive-dentistry-project08.netlify.app
 display_url: https://preventive-dentistry-project08.netlify.app
