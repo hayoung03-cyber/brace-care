@@ -213,23 +213,75 @@ footer strong{color:var(--green-dark);font-size:14px}
 </main>
 <footer><div class="wrap"><strong>BRACE CARE</strong><p>교정환자를 위한 구강관리 교육 가이드</p><p>본 콘텐츠는 일반적인 구강보건 교육을 위한 자료입니다. 개인별 진단이나 치료를 대신하지 않으며, 구체적인 관리 방법은 담당 치과의사의 안내를 따르세요.</p><p>© BRACE CARE · Educational project prototype</p></div></footer>
 <script>
+
 const pages=['why','brush','tools','life','check'];
+function escapeHTML(value){
+ return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function withBreaks(value){return escapeHTML(value).replace(/
+/g,'<br>');}
+function videoBlock(title, description, url){
+ const safeTitle=escapeHTML(title || '교육 영상'), safeDescription=escapeHTML(description || '');
+ const raw=String(url || '').trim();
+ if(!raw) return `<div class="video-placeholder"><div><div style="font-size:30px">▶</div><strong>${safeTitle}</strong><span>${safeDescription}</span></div></div>`;
+ let parsed; try{parsed=new URL(raw)}catch{return `<div class="video-placeholder"><div><strong>${safeTitle}</strong><span>올바른 영상 주소를 입력해 주세요.</span></div></div>`}
+ const host=parsed.hostname.toLowerCase(); let embed='';
+ if(host==='youtu.be'||host.endsWith('youtube.com')){
+  let id='';
+  if(host==='youtu.be') id=parsed.pathname.slice(1);
+  else if(parsed.pathname==='/watch') id=parsed.searchParams.get('v')||'';
+  else if(parsed.pathname.startsWith('/embed/')) id=parsed.pathname.split('/')[2]||'';
+  else if(parsed.pathname.startsWith('/shorts/')) id=parsed.pathname.split('/')[2]||'';
+  if(/^[A-Za-z0-9_-]{6,}$/.test(id)) embed=`<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}" title="${safeTitle}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" style="width:100%;aspect-ratio:16/9;border:0;border-radius:14px"></iframe>`;
+ }else if(/\.(mp4|webm|ogg)$/i.test(parsed.pathname)) embed=`<video controls playsinline preload="metadata" style="width:100%;max-height:480px;border-radius:14px"><source src="${escapeHTML(parsed.href)}"></video>`;
+ if(!embed) return `<div class="video-placeholder"><div><strong>${safeTitle}</strong><span>지원되는 YouTube 또는 MP4·WebM·OGG 영상 주소를 입력해 주세요.</span></div></div>`;
+ return `<div style="margin-top:16px;background:#f1f5f2;border:1px solid #dce9df;border-radius:17px;padding:12px">${embed}<p class="sub" style="margin:8px 4px 2px">${safeDescription}</p></div>`;
+}
+function stepCards(items,bullets=false){
+ return (items||[]).map((x,i)=>`<article class="step"><b><span class="step-no">${i+1}</span>${escapeHTML(x.title)}</b><p>${withBreaks(x.description)}</p>${bullets&&x.bullets?.length?`<ul>${x.bullets.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul>`:''}</article>`).join('');
+}
+function hero(n,label,title,desc){return `<div class="topic-hero"><div class="num">${n} · ${label}</div><h2>${escapeHTML(title)}</h2><p>${escapeHTML(desc)}</p></div>`}
+function renderSite(d){
+ const h=d.home,w=d.why,b=d.brush,t=d.tools,l=d.life,c=d.check,f=d.footer;
+ document.querySelector('#home .eyebrow').textContent=h.eyebrow;
+ document.querySelector('#home h1').innerHTML=withBreaks(h.headline);
+ document.querySelector('#home .hero p').innerHTML=withBreaks(h.description);
+ document.querySelector('#home .pill').textContent=h.pill;
+ const heads=document.querySelectorAll('#home .section-head');
+ heads[0].querySelector('h2').textContent=h.cardsTitle; heads[0].querySelector('.sub').textContent=h.cardsSubtitle;
+ heads[1].querySelector('h2').textContent=h.routineTitle; heads[1].querySelector('.sub').textContent=h.routineSubtitle;
+ const infos=document.querySelectorAll('#home .content-grid .info');
+ infos[0].querySelector('p').textContent=h.routineText;
+ infos[1].querySelector('p').textContent=h.rememberText; infos[1].querySelector('.callout').textContent=h.callout;
+ document.getElementById('why').innerHTML=hero('01','WHY IT MATTERS',w.title,w.description)+`<h3 style="margin:20px 0 8px">${escapeHTML(w.partsTitle)}</h3><p class="sub">${escapeHTML(w.partsSubtitle)}</p><div class="parts">${(w.parts||[]).map(x=>`<div class="part"><strong>${escapeHTML(x.title)}</strong><span>${escapeHTML(x.description)}</span></div>`).join('')}</div><div class="steps" style="margin-top:18px">${stepCards(w.reasons)}</div><div class="callout">${escapeHTML(w.callout)}</div>`;
+ document.getElementById('brush').innerHTML=hero('02','BRUSHING',b.title,b.description)+`<div class="steps">${stepCards(b.steps)}</div>${videoBlock(b.videoTitle,b.videoDescription,b.videoUrl)}<div class="notice">${escapeHTML(b.notice)}</div>`;
+ document.getElementById('tools').innerHTML=hero('03','EXTRA CARE',t.title,t.description)+`<div class="steps">${stepCards(t.steps,true)}</div>${videoBlock(t.videoTitle,t.videoDescription,t.videoUrl)}`;
+ document.getElementById('life').innerHTML=hero('04','FOOD & LIFESTYLE',l.title,l.description)+`<div class="steps">${stepCards(l.steps)}</div><div class="callout">${escapeHTML(l.callout)}</div>`;
+ document.getElementById('check').innerHTML=hero('05','BRUSHING CHECKLIST',c.title,c.description)+`<div class="brush-check"><h3 style="margin:0 0 5px">🪥 ${escapeHTML(c.listTitle)}</h3><p class="sub">${escapeHTML(c.listSubtitle)}</p><div id="brush-list">${(c.items||[]).map((x,i)=>`<label class="brush-item"><input type="checkbox"><span><strong>${i+1}. ${escapeHTML(x.title)}</strong><span>${escapeHTML(x.description)}</span></span></label>`).join('')}</div><div class="progress"><div id="progress-fill"></div></div><p id="progress-text" class="sub">0 / ${(c.items||[]).length}단계 확인</p><button class="primary" onclick="resetBrushChecklist()">체크리스트 초기화</button></div><div class="notice">${escapeHTML(c.notice)}</div><div class="info" style="margin-top:18px"><h3>${escapeHTML(c.reminderTitle)}</h3><p>${escapeHTML(c.reminderText)}</p><button class="primary" onclick="navigate('tools')">보조 구강관리 방법 보기 →</button></div>`;
+ document.querySelector('footer .wrap').innerHTML=`<strong>${escapeHTML(f.title)}</strong><p>${escapeHTML(f.subtitle)}</p><p>${escapeHTML(f.disclaimer)}</p><p>${escapeHTML(f.copyright)}</p>`;
+}
 function navigate(id){
  document.getElementById('home').classList.toggle('hidden',id!=='home');
  pages.forEach(p=>document.getElementById(p).classList.toggle('active',p===id));
  document.querySelectorAll('.navlinks button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
- document.querySelector('.navlinks').classList.remove('open');
- window.scrollTo({top:0,behavior:'smooth'});
+ document.querySelector('.navlinks').classList.remove('open'); window.scrollTo({top:0,behavior:'smooth'});
 }
 function showHome(){navigate('home')}
-const brushChecks=[...document.querySelectorAll('#brush-list input')];
+let brushChecks=[];
 function updateBrushProgress(){
- const n=brushChecks.filter(x=>x.checked).length;
- document.getElementById('progress-fill').style.width=(n/brushChecks.length*100)+'%';
- document.getElementById('progress-text').textContent=n+' / '+brushChecks.length+'단계 확인';
+ const n=brushChecks.filter(x=>x.checked).length,total=brushChecks.length;
+ document.getElementById('progress-fill').style.width=(total?n/total*100:0)+'%';
+ document.getElementById('progress-text').textContent=n+' / '+total+'단계 확인';
 }
 function resetBrushChecklist(){brushChecks.forEach(x=>x.checked=false);updateBrushProgress()}
-brushChecks.forEach(c=>c.addEventListener('change',updateBrushProgress));
+async function loadSiteContent(){
+ try{
+  const r=await fetch('./content/site.json',{cache:'no-store'}); if(!r.ok) throw new Error('JSON load failed');
+  renderSite(await r.json()); brushChecks=[...document.querySelectorAll('#brush-list input')];
+  brushChecks.forEach(x=>x.addEventListener('change',updateBrushProgress)); updateBrushProgress();
+ }catch(e){console.error(e);const p=document.createElement('p');p.className='notice';p.textContent='페이지 콘텐츠를 불러오지 못했습니다. 잠시 후 다시 방문해 주세요.';document.querySelector('main').prepend(p)}
+}
+loadSiteContent();
 
 </script>
 </body>
