@@ -1,50 +1,76 @@
-
 backend:
   name: github
   repo: hayoung03-cyber/brace-care
-  branch: main
-
-site_url: https://preventive-dentistry-project08.netlify.app
-display_url: https://preventive-dentistry-project08.netlify.app
+  branch: cms-integration
+  base_url: https://api.netlify.com
+  auth_endpoint: auth
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
-
-locale: "ko"
 
 collections:
   - name: "pages"
     label: "페이지 콘텐츠"
     files:
-      - name: "home"
+      - name: "site"
         label: "홈페이지 콘텐츠"
         file: "content/site.json"
         format: "json"
         fields:
-          - label: "홈페이지 제목"
-            name: "title"
-            widget: "string"
-
-          - label: "홈페이지 소개"
-            name: "intro"
-            widget: "text"
-
-          - label: "교정장치 관리"
-            name: "appliance"
+          - label: "홈페이지"
+            name: "home"
             widget: "object"
             fields:
-              - label: "제목"
-                name: "title"
-                widget: "string"
-              - label: "설명"
-                name: "description"
-                widget: "text"
-              - label: "이미지"
-                name: "image"
-                widget: "image"
-                required: false
-
-          - label: "교육 영상 주소"
-            name: "video_url"
-            widget: "string"
-            required: false
+              - { label: "상단 영문 문구", name: "eyebrow", widget: "string" }
+              - { label: "메인 제목", name: "title", widget: "string" }
+              - { label: "소개 문구", name: "description", widget: "text" }
+              - { label: "하단 라벨", name: "pill", widget: "string" }
+              - { label: "주제 선택 제목", name: "section_title", widget: "string" }
+              - { label: "주제 선택 설명", name: "section_description", widget: "text" }
+              - { label: "일상 관리 제목", name: "routine_title", widget: "string" }
+              - { label: "일상 관리 설명", name: "routine_description", widget: "text" }
+              - { label: "관리 카드 제목", name: "routine_card_title", widget: "string" }
+              - { label: "관리 카드 내용", name: "routine_card_text", widget: "text" }
+              - { label: "안내 카드 제목", name: "tip_title", widget: "string" }
+              - { label: "안내 카드 내용", name: "tip_text", widget: "text" }
+              - { label: "주의 문구", name: "tip_notice", widget: "text" }
+          - label: "홈페이지 주제 카드"
+            name: "cards"
+            widget: "list"
+            fields:
+              - { label: "아이콘", name: "icon", widget: "string" }
+              - { label: "제목", name: "title", widget: "string" }
+              - { label: "설명", name: "description", widget: "string" }
+              - { label: "연결 페이지", name: "page", widget: "select", options: ["why", "brush", "tools", "life"] }
+          - label: "상세 페이지"
+            name: "sections"
+            widget: "list"
+            summary: "{{fields.title}}"
+            fields:
+              - { label: "페이지 ID (변경 금지)", name: "id", widget: "hidden" }
+              - { label: "번호 및 영문 라벨", name: "number", widget: "string" }
+              - { label: "페이지 제목", name: "title", widget: "string" }
+              - { label: "소개 문구", name: "intro", widget: "text" }
+              - { label: "소제목", name: "subheading", widget: "string", required: false }
+              - { label: "설명", name: "description", widget: "text", required: false }
+              - { label: "페이지 이미지", name: "image", widget: "image", required: false }
+              - { label: "이미지 대체 설명", name: "image_alt", widget: "string", required: false }
+              - { label: "구성 요소", name: "blocks", widget: "list", required: false, fields: [{label: "항목 제목", name: "title", widget: "string"}, {label: "내용", name: "text", widget: "text"}] }
+              - { label: "단계 및 설명", name: "steps", widget: "list", required: false, fields: [{label: "단계 제목", name: "title", widget: "string"}, {label: "내용", name: "text", widget: "text"}, {label: "세부 항목", name: "bullets", widget: "list", required: false, field: {label: "세부 내용", name: "item", widget: "string"}}] }
+              - { label: "강조 문구", name: "callout", widget: "text", required: false }
+              - { label: "영상 제목", name: "video_title", widget: "string", required: false }
+              - { label: "영상 설명", name: "video_description", widget: "text", required: false }
+              - { label: "영상 주소", name: "video_url", widget: "string", required: false }
+              - { label: "주의 문구", name: "notice", widget: "text", required: false }
+              - { label: "체크리스트 제목", name: "check_title", widget: "string", required: false }
+              - { label: "체크리스트 설명", name: "check_description", widget: "text", required: false }
+              - { label: "마무리 제목", name: "reminder_title", widget: "string", required: false }
+              - { label: "마무리 내용", name: "reminder_text", widget: "text", required: false }
+          - label: "하단 안내"
+            name: "footer"
+            widget: "object"
+            fields:
+              - { label: "사이트 이름", name: "title", widget: "string" }
+              - { label: "설명", name: "subtitle", widget: "string" }
+              - { label: "면책 안내", name: "disclaimer", widget: "text" }
+              - { label: "저작권 문구", name: "copyright", widget: "string" }
