@@ -89,6 +89,22 @@ footer strong{color:var(--green-dark);font-size:14px}
  .cards{grid-template-columns:repeat(2,1fr)}.content-grid,.steps{grid-template-columns:1fr}.section{padding:22px 0 35px}.section-head{align-items:start;flex-direction:column}
  .checklist{grid-template-columns:1fr}.wrap{padding:0 17px}
 }
+
+/* Flexible CMS content blocks — preserves existing site theme */
+.cms-block{margin:18px 0}
+.cms-block-heading{font-size:19px;margin:23px 0 9px;color:var(--green-dark)}
+.cms-block-text{font-size:14px;color:#536a5d;white-space:normal;line-height:1.8}
+.cms-image{margin:20px auto;text-align:center}
+.cms-image img{display:block;max-width:100%;height:auto;margin:auto;border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.cms-image.wide{max-width:100%}.cms-image.medium{max-width:680px}.cms-image.small{max-width:360px}
+.cms-image figcaption{margin-top:8px;font-size:12px;color:var(--muted)}
+.cms-video{margin:20px 0}.cms-video-title{font-size:16px;margin:0 0 5px}.cms-video-description{font-size:13px;color:var(--muted);margin:0 0 10px}
+.cms-video-frame{background:#f1f5f2;border:1px solid var(--line);border-radius:17px;overflow:hidden}
+.cms-video-frame iframe,.cms-video-frame video{display:block;width:100%;aspect-ratio:16/9;border:0}
+.cms-video-placeholder{padding:25px;text-align:center;color:var(--muted);background:#f1f5f2;border-radius:17px;font-size:13px}
+.cms-block .parts,.cms-block .steps{margin-top:0}
+@media(max-width:760px){.cms-image.small,.cms-image.medium{max-width:100%}}
+
 </style>
 </head>
 <body>
@@ -111,28 +127,55 @@ footer strong{color:var(--green-dark);font-size:14px}
 const pages=['why','brush','tools','life','check'];
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function lines(v){return esc(v).replace(/\r?\n/g,'<br>');}
-function videoEmbed(url,title,desc){
- if(!url) return `<div class="video-placeholder"><div><div style="font-size:30px">▶</div><strong>${esc(title||'교육 영상')}</strong><span>${esc(desc||'영상 주소를 CMS에서 입력하면 여기에 표시됩니다.')}</span></div></div>`;
- let u=url.trim(), embed='';
- const yt=u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{6,})/);
- if(yt) embed=`https://www.youtube-nocookie.com/embed/${yt[1]}`;
- if(embed) return `<div class="video-placeholder" style="padding:0;overflow:hidden"><iframe src="${esc(embed)}" title="${esc(title||'교육 영상')}" style="width:100%;aspect-ratio:16/9;border:0" allowfullscreen loading="lazy"></iframe></div>`;
- if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(u)) return `<div class="video-placeholder" style="padding:0;overflow:hidden"><video controls playsinline style="width:100%;max-height:480px" src="${esc(u)}">브라우저가 영상을 지원하지 않습니다.</video></div>`;
- return `<div class="video-placeholder"><div><strong>${esc(title||'교육 영상')}</strong><span>지원되는 YouTube 또는 MP4/WebM/OGG 영상 주소를 입력해 주세요.</span><a href="${esc(u)}" target="_blank" rel="noopener">영상 링크 열기</a></div></div>`;
+function safeMediaUrl(value){
+ const raw=String(value||'').trim();
+ if(!raw)return '';
+ try{const u=new URL(raw,window.location.href);if(!['https:','http:'].includes(u.protocol))return '';return u.href;}catch{return '';}
 }
-function renderStep(s,i){return `<article class="step"><b><span class="step-no">${i+1}</span>${esc(s.title)}</b><p>${lines(s.text)}</p>${Array.isArray(s.bullets)&&s.bullets.length?`<ul>${s.bullets.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</article>`;}
-function renderSection(s){let h=`<section id="${esc(s.id)}" class="topic"><div class="topic-hero"><div class="num">${esc(s.number)}</div><h2>${esc(s.title)}</h2><p>${lines(s.intro)}</p></div>`;
- if(s.subheading) h+=`<h3 style="margin:20px 0 8px">${esc(s.subheading)}</h3>`;
- if(s.description) h+=`<p class="sub">${lines(s.description)}</p>`;
- if(s.image) h+=`<div style="margin:18px 0;text-align:center"><img src="${esc(s.image)}" alt="${esc(s.image_alt||s.title)}" style="max-width:100%;height:auto;border-radius:18px"></div>`;
- if(s.blocks?.length) h+=`<div class="parts">${s.blocks.map(b=>`<div class="part"><strong>${esc(b.title)}</strong><span>${lines(b.text)}</span></div>`).join('')}</div>`;
+function youtubeId(value){
+ try{const u=new URL(value);const host=u.hostname.toLowerCase().replace(/^www\./,'');
+ if(host==='youtu.be')return /^[\w-]{11}$/.test(u.pathname.slice(1))?u.pathname.slice(1):'';
+ if(host==='youtube.com'||host==='m.youtube.com'||host==='youtube-nocookie.com'){
+ const id=u.searchParams.get('v')||u.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})/)?.[1]||'';
+ return /^[\w-]{11}$/.test(id)?id:'';
+ }
+ }catch{}return '';
+}
+function videoEmbed(url,title,desc){
+ const safe=safeMediaUrl(url),id=youtubeId(safe);
+ let media='';
+ if(id)media=`<div class="cms-video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${esc(title||'교육 영상')}" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+ else if(safe&&/\.(mp4|webm|ogg)(?:[?#]|$)/i.test(safe))media=`<div class="cms-video-frame"><video controls playsinline preload="metadata" src="${esc(safe)}">브라우저가 영상을 지원하지 않습니다.</video></div>`;
+ else media=`<div class="cms-video-placeholder">${safe?`지원되지 않는 영상 주소입니다. <a href="${esc(safe)}" target="_blank" rel="noopener noreferrer">영상 링크 열기</a>`:'영상 주소를 입력하면 여기에 표시됩니다.'}</div>`;
+ return `<div class="cms-video">${title?`<h3 class="cms-video-title">${esc(title)}</h3>`:''}${desc?`<p class="cms-video-description">${lines(desc)}</p>`:''}${media}</div>`;
+}
+function renderStep(s,i){return `<article class="step"><b><span class="step-no">${i+1}</span>${esc(s.title)}</b><p>${lines(s.text)}</p>${Array.isArray(s.bullets)&&s.bullets.length?`<ul>${s.bullets.map(x=>`<li>${esc(typeof x==='string'?x:x?.item||'')}</li>`).join('')}</ul>`:''}</article>`;}
+function renderBlock(b){
+ if(!b||!b.type)return '';
+ switch(b.type){
+ case 'heading':return `<h3 class="cms-block-heading">${esc(b.title)}</h3>`;
+ case 'text':return `<div class="cms-block cms-block-text">${lines(b.text)}</div>`;
+ case 'image':{
+ const url=safeMediaUrl(b.image);if(!url)return '';
+ const size=['wide','medium','small'].includes(b.size)?b.size:'wide';
+ return `<figure class="cms-image ${size}"><img src="${esc(url)}" alt="${esc(b.alt||'교육용 이미지')}" loading="lazy">${b.caption?`<figcaption>${esc(b.caption)}</figcaption>`:''}</figure>`;
+ }
+ case 'video':return videoEmbed(b.url,b.title,b.description);
+ case 'cards':return Array.isArray(b.items)&&b.items.length?`<div class="cms-block parts">${b.items.map(x=>`<div class="part"><strong>${esc(x.title)}</strong><span>${lines(x.text)}</span></div>`).join('')}</div>`:'';
+ case 'steps':return Array.isArray(b.items)&&b.items.length?`<div class="cms-block steps">${b.items.map(renderStep).join('')}</div>`:'';
+ case 'callout':return `<div class="cms-block callout">${lines(b.text)}</div>`;
+ case 'notice':return `<div class="cms-block notice">${lines(b.text)}</div>`;
+ case 'reminder':return `<div class="cms-block info"><h3>${esc(b.title||'잊지 마세요')}</h3><p>${lines(b.text)}</p></div>`;
+ default:return '';
+ }
+}
+function renderSection(s){
+ let h=`<section id="${esc(s.id)}" class="topic"><div class="topic-hero"><div class="num">${esc(s.number)}</div><h2>${esc(s.title)}</h2><p>${lines(s.intro)}</p></div>`;
+ if(Array.isArray(s.content_blocks))h+=s.content_blocks.map(renderBlock).join('');
+ // The brushing checklist is kept outside free blocks to preserve its existing interaction.
  if(s.id==='check'){
  h+=`<div class="brush-check"><h3 style="margin:0 0 5px">🪥 ${esc(s.check_title||'단계별 확인')}</h3><p class="sub">${lines(s.check_description||'한 항목씩 확인해 보세요.')}</p><div id="brush-list">${(s.steps||[]).map((x,i)=>`<label class="brush-item"><input type="checkbox"><span><strong>${i+1}. ${esc(x.title)}</strong><span>${lines(x.text)}</span></span></label>`).join('')}</div><div class="progress"><div id="progress-fill"></div></div><p id="progress-text" class="sub">0 / ${(s.steps||[]).length}단계 확인</p><button class="primary" onclick="resetBrushChecklist()">체크리스트 초기화</button></div>`;
- } else if(s.steps?.length) h+=`<div class="steps">${s.steps.map(renderStep).join('')}</div>`;
- if(s.video_title) h+=videoEmbed(s.video_url,s.video_title,s.video_description);
- if(s.callout) h+=`<div class="callout">${lines(s.callout)}</div>`;
- if(s.notice) h+=`<div class="notice">${lines(s.notice)}</div>`;
- if(s.reminder_text) h+=`<div class="info" style="margin-top:18px"><h3>${esc(s.reminder_title||'잊지 마세요')}</h3><p>${lines(s.reminder_text)}</p><button class="primary" onclick="navigate('tools')">보조 구강관리 방법 보기 →</button></div>`;
+ }
  return h+'</section>';
 }
 function renderSite(d){const h=d.home||{},cards=d.cards||[],sections=d.sections||[],f=d.footer||{};
