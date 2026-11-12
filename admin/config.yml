@@ -1,7 +1,7 @@
 backend:
   name: github
   repo: hayoung03-cyber/brace-care
-  branch: main
+  branch: flexible-content-test
   base_url: https://api.netlify.com
   auth_endpoint: auth
 media_folder: images/uploads
