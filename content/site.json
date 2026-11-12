@@ -119,13 +119,6 @@
           ]
         },
         {
-          "type": "image",
-          "size": "wide",
-          "image": "/images/uploads/img_9618.png",
-          "alt": "하치와레가 고양이 사진을 찍음",
-          "caption": "하치와레와 고양이"
-        },
-        {
           "type": "steps",
           "items": [
             {
@@ -199,6 +192,12 @@
               "text": "어금니의 씹는 면, 치아 안쪽 면도 빠뜨리지 않고 닦습니다. 마지막으로 거울을 보며 장치 주변을 확인합니다."
             }
           ]
+        },
+        {
+          "type": "image",
+          "size": "wide",
+          "image": "/images/uploads/img_9715.png",
+          "caption": "챠터스법 사용 단계"
         },
         {
           "type": "video",
@@ -343,8 +342,9 @@
         },
         {
           "type": "image",
-          "size": "wide",
-          "image": "/images/uploads/img_9438.jpeg"
+          "size": "medium",
+          "image": "/images/uploads/img_9438.jpeg",
+          "caption": "다리 꼬는 우사기"
         },
         {
           "type": "callout",
