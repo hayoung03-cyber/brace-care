@@ -344,6 +344,12 @@
           ]
         },
         {
+          "type": "image",
+          "size": "wide",
+          "image": "/images/uploads/kakaotalk_20261118_204829797.jpg",
+          "caption": "교정 중 간식, 이렇게 바꿔 보세요."
+        },
+        {
           "type": "callout",
           "text": "음식 섭취 제한은 개인의 교정장치와 치료 단계에 따라 달라질 수 있습니다. 담당 의료진의 안내를 우선하세요."
         }
