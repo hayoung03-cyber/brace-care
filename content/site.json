@@ -205,7 +205,7 @@
         {
           "type": "video",
           "title": "칫솔질 시범 영상",
-          "description": "조별 촬영 영상 또는 치아 모형 시연 영상을 여기에 추가하세요.",
+          "description": "",
           "url": "https://youtu.be/am4XZGMFyUE?si=KCPngP7Sxt2CEQqr"
         },
         {
@@ -286,7 +286,7 @@
         {
           "type": "video",
           "title": "치간칫솔·치실 사용 영상",
-          "description": "각 도구의 올바른 사용법을 짧게 촬영해 추가하세요.",
+          "description": "",
           "url": "https://youtu.be/e-igmiyX2R4?si=wOr65hQQgfl-iJLb"
         }
       ],
